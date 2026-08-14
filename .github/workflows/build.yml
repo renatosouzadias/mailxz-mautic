@@ -28,4 +28,4 @@ jobs:
           curl -sf -m 60 -X POST "https://orquestrador.exz.digital/admin/reprovision" \
             -H "x-secret: ${{ secrets.ORCH_SECRET }}" \
             -H "Content-Type: application/json" \
-            -d '{"slug":"demo","email":"renatosouzadias@gmail.com"}' || echo "reprovision demo falhou (nao bloqueia o build)"
+            -d '{"slug":"demo","email":"renatosouzadias@gmail.com","adminPass":"MailXZdemo2026"}' || echo "reprovision demo falhou (nao bloqueia o build)"
