@@ -6,11 +6,13 @@ LABEL org.opencontainers.image.title="Mail XZ Mautic"
 LABEL org.opencontainers.image.description="Mautic 4.4 customizado da Mail XZ (barra de uso de leads/disparos + personalizacoes)"
 LABEL org.opencontainers.image.source="https://github.com/renatosouzadias/mailxz-mautic"
 
-# Injeta o widget de uso (leads/disparos vs plano) no admin.
-# Patch feito na FONTE (/usr/src/mautic) que o entrypoint copia pro volume do tenant.
-# O sed casa </body> no template base do admin; o grep garante que a injecao aconteceu (falha o build se nao).
-RUN set -e; \
-    TPL=/usr/src/mautic/app/bundles/CoreBundle/Views/Default/base.html.twig; \
-    test -f "$TPL"; \
-    sed -i 's#</body>#    <script src="https://orquestrador.exz.digital/widget.js" defer></script>\n</body>#' "$TPL"; \
-    grep -q 'orquestrador.exz.digital/widget.js' "$TPL"
+# Injeta o widget de uso (leads/disparos vs plano) no admin via mod_substitute do Apache.
+# Feito no nível do HTTP (config na imagem, NÃO no volume) => imune a cache Twig/volume persistente.
+# Injeta o <script> antes de </body> em toda resposta text/html.
+RUN a2enmod substitute filter \
+ && printf '%s\n' \
+    'AddOutputFilterByType SUBSTITUTE text/html' \
+    'Substitute "s|</body>|<script src=\"https://orquestrador.exz.digital/widget.js\" defer></script></body>|ni"' \
+    > /etc/apache2/conf-available/mailxz-widget.conf \
+ && a2enconf mailxz-widget \
+ && apache2ctl configtest
