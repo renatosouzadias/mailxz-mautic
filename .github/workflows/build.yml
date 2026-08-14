@@ -23,3 +23,9 @@ jobs:
           tags: |
             ghcr.io/renatosouzadias/mailxz-mautic:v4.4.12
             ghcr.io/renatosouzadias/mailxz-mautic:latest
+      - name: Atualiza a instancia DEMO (espelha a imagem)
+        run: |
+          curl -sf -m 60 -X POST "https://orquestrador.exz.digital/admin/reprovision" \
+            -H "x-secret: ${{ secrets.ORCH_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{"slug":"demo","email":"renatosouzadias@gmail.com"}' || echo "reprovision demo falhou (nao bloqueia o build)"
